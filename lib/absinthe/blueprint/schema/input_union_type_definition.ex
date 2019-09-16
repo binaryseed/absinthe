@@ -42,46 +42,6 @@ defmodule Absinthe.Blueprint.Schema.InputUnionTypeDefinition do
     }
   end
 
-  # def build_fields(type_def, schema) do
-  #   for field_def <- type_def.fields, into: %{} do
-  #     field = %Type.Field{
-  #       identifier: field_def.identifier,
-  #       middleware: field_def.middleware,
-  #       deprecation: field_def.deprecation,
-  #       description: field_def.description,
-  #       complexity: field_def.complexity,
-  #       config: field_def.complexity,
-  #       triggers: field_def.triggers,
-  #       name: field_def.name,
-  #       type: Blueprint.TypeReference.to_type(field_def.type, schema),
-  #       args: build_args(field_def, schema),
-  #       definition: field_def.module,
-  #       __reference__: field_def.__reference__,
-  #       __private__: field_def.__private__
-  #     }
-
-  #     {field.identifier, field}
-  #   end
-  # end
-
-  # def build_args(field_def, schema) do
-  #   Map.new(field_def.arguments, fn arg_def ->
-  #     arg = %Type.Argument{
-  #       identifier: arg_def.identifier,
-  #       name: arg_def.name,
-  #       description: arg_def.description,
-  #       type: Blueprint.TypeReference.to_type(arg_def.type, schema),
-  #       default_value: arg_def.default_value,
-  #       deprecation: arg_def.deprecation
-  #     }
-
-  #     {arg_def.identifier, arg}
-  #   end)
-  # end
-
-  @doc false
-  # def functions(), do: [:resolve_type]
-
   defimpl Inspect do
     defdelegate inspect(term, options),
       to: Absinthe.Schema.Notation.SDL.Render

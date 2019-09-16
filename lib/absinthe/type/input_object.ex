@@ -43,7 +43,6 @@ defmodule Absinthe.Type.InputObject do
   * `:name` - The name of the input object type. Should be a TitleCased `binary`. Set automatically.
   * `:description` - A nice description for introspection.
   * `:fields` - A map of `Absinthe.Type.Field` structs. Usually built via `Absinthe.Schema.Notation.field/4`.
-  * `:is_type_of` - A function used to identify whether a resolved object belongs to this defined type. For use with `:interfaces` entry and `Absinthe.Type.Interface`.
 
   The `__private__` and `:__reference__` fields are for internal use.
   """
@@ -52,7 +51,6 @@ defmodule Absinthe.Type.InputObject do
           description: binary,
           fields: map,
           identifier: atom,
-          is_type_of: (any -> boolean),
           __private__: Keyword.t(),
           definition: module,
           __reference__: Type.Reference.t()
@@ -62,7 +60,6 @@ defmodule Absinthe.Type.InputObject do
             description: nil,
             fields: %{},
             identifier: nil,
-            is_type_of: nil,
             __private__: [],
             definition: nil,
             __reference__: nil

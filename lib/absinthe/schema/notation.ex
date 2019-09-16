@@ -1227,15 +1227,6 @@ defmodule Absinthe.Schema.Notation do
     |> do_import_sdl(sdl, opts)
   end
 
-  @doc """
-  Marks a type in an input union as default
-
-  See `field/3` for examples
-  """
-  defmacro default(type) do
-    type
-  end
-
   defmacro values(values) do
     __CALLER__
     |> record_values!(values)
@@ -1445,29 +1436,6 @@ defmodule Absinthe.Schema.Notation do
   end
 
   # ------------------------------
-
-  # def define_attrs(type_module, env, identifier) do
-  #   case type_module do
-  #     Type.InputUnion ->
-  #       close_scope_with_name(env.module, identifier, title: true)
-  #       |> set_default()
-
-  #     _ ->
-  #       close_scope_with_name(env.module, identifier, title: true)
-  #   end
-  # end
-
-  # defp set_default(attrs) do
-  #   Keyword.fetch!(attrs, :types)
-  #   |> Enum.find(fn type -> match?({:default, _, _}, type) end)
-  #   |> case do
-  #     nil ->
-  #       attrs
-
-  #     {:default, _location, [type]} ->
-  #       attrs ++ [default_type: type]
-  #   end
-  # end
 
   @doc false
   defmacro pop() do

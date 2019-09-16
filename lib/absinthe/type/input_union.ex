@@ -1,16 +1,12 @@
 defmodule Absinthe.Type.InputUnion do
   @moduledoc """
-  An InputUnion is an abstract type made up of multiple possible concrete types.
+  An InputUnion is an abstract input type made up of multiple possible concrete input types.
 
-  No common fields are declared in an input union. Compare to `Absinthe.Type.Interface`.
-
-  Because it's necessary for the input union to determine the concrete type of a
-  resolved input object, you must either:
   ```
   input_union :search_query do
     description "A search query"
 
-    types [:person, :business]
+    types [:by_name, :by_id]
   end
   ```
   """
@@ -34,8 +30,7 @@ defmodule Absinthe.Type.InputUnion do
           identifier: atom,
           __private__: Keyword.t(),
           definition: module,
-          __reference__: Type.Reference.t(),
-          default_type: Type.identifier_t()
+          __reference__: Type.Reference.t()
         }
 
   defstruct name: nil,
@@ -44,12 +39,7 @@ defmodule Absinthe.Type.InputUnion do
             types: [],
             __private__: [],
             definition: nil,
-            __reference__: nil,
-            default_type: nil
-
-  def build(%{attrs: attrs}) do
-    quote do: %unquote(__MODULE__){unquote_splicing(attrs)}
-  end
+            __reference__: nil
 
   @doc false
   @spec member?(t, Type.t()) :: boolean
