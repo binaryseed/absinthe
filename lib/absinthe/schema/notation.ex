@@ -934,16 +934,7 @@ defmodule Absinthe.Schema.Notation do
   defmacro input_union(identifier, attrs \\ [], do: block) do
     __CALLER__
     |> recordable!(:input_union, @placement[:input_union])
-    |> record_input_union!(identifier, attrs, block)
-
-    desc_attribute_recorder(identifier)
-  end
-
-  @doc false
-  # Record a union type
-  def record_input_union!(env, identifier, attrs, block) do
-    attrs = Keyword.put(attrs, :identifier, identifier)
-    scope(env, :input_union, identifier, attrs, block)
+    |> record!(Schema.InputUnionTypeDefinition, identifier, attrs, block)
   end
 
   @placement {:types, [under: [:union, :input_union]]}
@@ -1260,6 +1251,7 @@ defmodule Absinthe.Schema.Notation do
     Schema.EnumTypeDefinition,
     Schema.EnumValueDefinition,
     Schema.InputObjectTypeDefinition,
+    Schema.InputUnionTypeDefinition,
     Schema.InputValueDefinition,
     Schema.UnionTypeDefinition,
     Schema.InterfaceTypeDefinition,

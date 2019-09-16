@@ -302,7 +302,7 @@ defmodule Absinthe.Phase.Schema do
     with %{type: type} <- result,
          %{input_value: %{normalized: %{fields: fields}}} <- node,
          %Absinthe.Type.InputUnion{} = input_union <-
-           Absinthe.Schema.cached_lookup_type(schema, Type.unwrap(type)) do
+           Absinthe.Schema.lookup_type(schema, Type.unwrap(type)) do
       concrete_type = extract_typename(fields, input_union)
       %{result | type: concrete_type}
     else

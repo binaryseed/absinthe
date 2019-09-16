@@ -156,71 +156,73 @@ defmodule Absinthe.Execution.Arguments.InputObjectTest do
     )
   end
 
-  test "input union" do
-    assert_data(
-      %{"eitherOr" => "THIS foo"},
-      run(
-        """
-        query {
-          eitherOr(
-            unionArg: {this: "foo"}
-          )
-        }
-        """,
-        @schema
+  describe "Input Union" do
+    test "works" do
+      assert_data(
+        %{"eitherOr" => "THIS foo"},
+        run(
+          """
+          query {
+            eitherOr(
+              unionArg: {__inputname: "ThisOne", this: "foo"}
+            )
+          }
+          """,
+          @schema
+        )
       )
-    )
 
-    assert_data(
-      %{"eitherOr" => "THAT bar"},
-      run(
-        """
-        query {
-          eitherOr(
-            objectArg: {value: "Ignore me"}
-            unionArg: {__inputname: "ThatOne", that: "bar"}
-          )
-        }
-        """,
-        @schema
+      assert_data(
+        %{"eitherOr" => "THAT bar"},
+        run(
+          """
+          query {
+            eitherOr(
+              objectArg: {value: "Ignore me"}
+              unionArg: {__inputname: "ThatOne", that: "bar"}
+            )
+          }
+          """,
+          @schema
+        )
       )
-    )
-  end
+    end
 
-  test "input union nested inside other input objects" do
-    assert_data(
-      %{"eitherOr" => "NESTED THIS foobar"},
-      run(
-        """
-        query {
-          eitherOr(
-            nested: {
-              nestedUnionArg: {
-                __inputname: "ThisOne",
-                this: "foobar"
+    test "input union nested inside other input objects" do
+      assert_data(
+        %{"eitherOr" => "NESTED THIS foobar"},
+        run(
+          """
+          query {
+            eitherOr(
+              nested: {
+                nestedUnionArg: {
+                  __inputname: "ThisOne",
+                  this: "foobar"
+                }
               }
-            }
-          )
-        }
-        """,
-        @schema
+            )
+          }
+          """,
+          @schema
+        )
       )
-    )
-  end
+    end
 
-  test "list of input unions" do
-    assert_data(
-      %{"eitherOr" => "ThisOne&THIS&ThatOne&THAT"},
-      run(
-        """
-        query {
-          eitherOr(
-            listUnion: [{__inputname: "ThisOne", this: "THIS"}, {__inputname: "ThatOne", that: "THAT"}]
-          )
-        }
-        """,
-        @schema
+    test "list of input unions" do
+      assert_data(
+        %{"eitherOr" => "ThisOne&THIS&ThatOne&THAT"},
+        run(
+          """
+          query {
+            eitherOr(
+              listUnion: [{__inputname: "ThisOne", this: "THIS"}, {__inputname: "ThatOne", that: "THAT"}]
+            )
+          }
+          """,
+          @schema
+        )
       )
-    )
+    end
   end
 end

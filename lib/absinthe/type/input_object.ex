@@ -72,17 +72,4 @@ defmodule Absinthe.Type.InputObject do
       Map.values(node.fields)
     end
   end
-
-  # defp spliced_inputname() do
-  #   [
-  #     name: "__inputname",
-  #     __reference__:
-  #       quote do
-  #         %Absinthe.Type.Reference{
-  #           identifier: :__inputname
-  #         }
-  #       end,
-  #     type: :string
-  #   ]
-  # end
 end

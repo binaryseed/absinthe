@@ -57,6 +57,13 @@ defmodule Absinthe.Blueprint.Schema.InputObjectTypeDefinition do
 
       {field.identifier, field}
     end
+    |> Map.merge(%{
+      __inputname: %Type.Field{
+        identifier: :__inputname,
+        name: "__inputname",
+        type: :string
+      }
+    })
   end
 
   defimpl Inspect do

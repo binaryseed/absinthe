@@ -101,6 +101,7 @@ defmodule Absinthe.Blueprint.Schema do
     Schema.EnumTypeDefinition,
     Schema.DirectiveDefinition,
     Schema.InputObjectTypeDefinition,
+    Schema.InputUnionTypeDefinition,
     Schema.InputValueDefinition,
     Schema.InterfaceTypeDefinition,
     Schema.UnionTypeDefinition,
@@ -208,6 +209,14 @@ defmodule Absinthe.Blueprint.Schema do
 
   defp build_types([:close | rest], [%Schema.UnionTypeDefinition{} = union, schema | stack], buff) do
     build_types(rest, [push(schema, :type_definitions, union) | stack], buff)
+  end
+
+  defp build_types(
+         [:close | rest],
+         [%Schema.InputUnionTypeDefinition{} = input_union, schema | stack],
+         buff
+       ) do
+    build_types(rest, [push(schema, :type_definitions, input_union) | stack], buff)
   end
 
   defp build_types([:close | rest], [%Schema.DirectiveDefinition{} = dir, schema | stack], buff) do

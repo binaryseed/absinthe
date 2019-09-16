@@ -33,6 +33,7 @@ defmodule Absinthe.Type.InputUnion do
           types: [Type.identifier_t()],
           identifier: atom,
           __private__: Keyword.t(),
+          definition: module,
           __reference__: Type.Reference.t(),
           default_type: Type.identifier_t()
         }
@@ -42,6 +43,7 @@ defmodule Absinthe.Type.InputUnion do
             identifier: nil,
             types: [],
             __private__: [],
+            definition: nil,
             __reference__: nil,
             default_type: nil
 
