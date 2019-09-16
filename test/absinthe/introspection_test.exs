@@ -159,6 +159,12 @@ defmodule Absinthe.IntrospectionTest do
                "description" => "The basic details for a person",
                "inputFields" => [
                  %{
+                   "defaultValue" => nil,
+                   "description" => nil,
+                   "name" => "__inputname",
+                   "type" => %{"kind" => "SCALAR", "name" => "String", "ofType" => nil}
+                 },
+                 %{
                    "defaultValue" => "43",
                    "description" => "The person's age",
                    "name" => "age",
@@ -544,5 +550,39 @@ defmodule Absinthe.IntrospectionTest do
        }},
       result
     )
+  end
+
+  describe "introspection of a input union type" do
+    test "can use __type and get possible types" do
+      result =
+        """
+        {
+          __type(name: "ThisOrThat") {
+            kind
+            name
+            description
+            possibleTypes {
+              name
+            }
+          }
+        }
+        """
+        |> run(Absinthe.Fixtures.ArgumentsSchema)
+
+      assert_result(
+        {:ok,
+         %{
+           data: %{
+             "__type" => %{
+               "description" => "A sample InputUnion",
+               "kind" => "INPUT_UNION",
+               "name" => "ThisOrThat",
+               "possibleTypes" => [%{"name" => "ThisOne"}, %{"name" => "ThatOne"}]
+             }
+           }
+         }},
+        result
+      )
+    end
   end
 end

@@ -123,6 +123,7 @@ defmodule Absinthe.Phase.Schema.Validation.InputOuputTypesCorrectlyPlaced do
   defp input_type?(%Blueprint.Schema.ScalarTypeDefinition{}), do: true
   defp input_type?(%Blueprint.Schema.EnumTypeDefinition{}), do: true
   defp input_type?(%Blueprint.Schema.InputObjectTypeDefinition{}), do: true
+  # TODO: InputUnion
   defp input_type?(_), do: false
 
   defp output_type?(%Blueprint.Schema.InputObjectTypeDefinition{}), do: false

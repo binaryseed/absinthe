@@ -49,6 +49,27 @@ defmodule Absinthe.Fixtures.ArgumentsSchema do
     field :non_null_field, non_null(:string)
   end
 
+  input_object :standard do
+    field :value, :string
+  end
+
+  input_object :this_one do
+    field :this, :string
+  end
+
+  input_object :that_one do
+    field :that, :string
+  end
+
+  input_object :nested_input do
+    field :nested_union_arg, non_null(:this_or_that)
+  end
+
+  input_union :this_or_that do
+    description "A sample InputUnion"
+    types [default(:this_one), :that_one]
+  end
+
   query do
     field :stuff, :integer do
       arg :stuff, non_null(:input_stuff)
@@ -137,6 +158,33 @@ defmodule Absinthe.Fixtures.ArgumentsSchema do
       resolve fn
         %{name: %{first_name: name}}, _ -> {:ok, name}
         args, _ -> {:error, "Got #{inspect(args)} instead"}
+      end
+    end
+
+    field :either_or, :string do
+      arg :object_arg, :standard
+      arg :union_arg, :this_or_that
+      arg :nested, :nested_input
+      arg :list_union, list_of(:this_or_that)
+
+      resolve fn
+        %{union_arg: %{this: thing}}, _ ->
+          {:ok, "THIS #{thing}"}
+
+        %{union_arg: %{that: thing}}, _ ->
+          {:ok, "THAT #{thing}"}
+
+        %{nested: %{nested_union_arg: %{this: thing}}}, _ ->
+          {:ok, "NESTED THIS #{thing}"}
+
+        %{nested: %{nested_union_arg: %{that: thing}}}, _ ->
+          {:ok, "NESTED THAT #{thing}"}
+
+        %{list_union: lists}, _ ->
+          {:ok, lists |> Enum.flat_map(&Map.values/1) |> Enum.join("&")}
+
+        _, _ ->
+          {:error, "NOTHIN"}
       end
     end
   end

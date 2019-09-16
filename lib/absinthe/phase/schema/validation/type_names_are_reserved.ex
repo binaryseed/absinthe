@@ -22,6 +22,7 @@ defmodule Absinthe.Phase.Schema.Validation.TypeNamesAreReserved do
     %{node | flags: flags}
   end
 
+  # TODO: handle inputunion
   def make_reserved(node = %{name: "__" <> _}) do
     allow_reserved(node)
   end

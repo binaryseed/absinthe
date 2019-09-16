@@ -304,6 +304,7 @@ defmodule Absinthe.Schema.Notation do
   See also:
   * `Absinthe.Type.Interface`
   * `Absinthe.Type.Union`
+  * `Absinthe.Type.InputUnion`
 
   ## Placement
 
@@ -676,7 +677,18 @@ defmodule Absinthe.Schema.Notation do
   end
 
   @placement {:private,
-              [under: [:field, :object, :input_object, :enum, :scalar, :interface, :union]]}
+              [
+                under: [
+                  :field,
+                  :object,
+                  :input_object,
+                  :enum,
+                  :scalar,
+                  :interface,
+                  :union,
+                  :input_union
+                ]
+              ]}
   @doc false
   defmacro private(owner, key, value) do
     __CALLER__
@@ -685,7 +697,18 @@ defmodule Absinthe.Schema.Notation do
   end
 
   @placement {:meta,
-              [under: [:field, :object, :input_object, :enum, :scalar, :interface, :union]]}
+              [
+                under: [
+                  :field,
+                  :object,
+                  :input_object,
+                  :enum,
+                  :scalar,
+                  :interface,
+                  :union,
+                  :input_union
+                ]
+              ]}
   @doc """
   Defines a metadata key/value pair for a custom type.
 
@@ -887,7 +910,43 @@ defmodule Absinthe.Schema.Notation do
     |> record!(Schema.UnionTypeDefinition, identifier, attrs, block)
   end
 
-  @placement {:types, [under: [:union]]}
+  # INPUT UNIONS
+
+  @placement {:input_union, [toplevel: true]}
+  @doc """
+  Defines an input union type
+
+  See `Absinthe.Type.InputUnion`
+
+  ## Placement
+
+  #{Utils.placement_docs(@placement)}
+
+  ## Examples
+  ```
+  input_union :search_query do
+    description "A search query"
+
+    types [:person, :business]
+  end
+  ```
+  """
+  defmacro input_union(identifier, attrs \\ [], do: block) do
+    __CALLER__
+    |> recordable!(:input_union, @placement[:input_union])
+    |> record_input_union!(identifier, attrs, block)
+
+    desc_attribute_recorder(identifier)
+  end
+
+  @doc false
+  # Record a union type
+  def record_input_union!(env, identifier, attrs, block) do
+    attrs = Keyword.put(attrs, :identifier, identifier)
+    scope(env, :input_union, identifier, attrs, block)
+  end
+
+  @placement {:types, [under: [:union, :input_union]]}
   @doc """
   Defines the types possible under a union type
 
@@ -1177,6 +1236,15 @@ defmodule Absinthe.Schema.Notation do
     |> do_import_sdl(sdl, opts)
   end
 
+  @doc """
+  Marks a type in an input union as default
+
+  See `field/3` for examples
+  """
+  defmacro default(type) do
+    type
+  end
+
   defmacro values(values) do
     __CALLER__
     |> record_values!(values)
@@ -1385,6 +1453,29 @@ defmodule Absinthe.Schema.Notation do
   end
 
   # ------------------------------
+
+  # def define_attrs(type_module, env, identifier) do
+  #   case type_module do
+  #     Type.InputUnion ->
+  #       close_scope_with_name(env.module, identifier, title: true)
+  #       |> set_default()
+
+  #     _ ->
+  #       close_scope_with_name(env.module, identifier, title: true)
+  #   end
+  # end
+
+  # defp set_default(attrs) do
+  #   Keyword.fetch!(attrs, :types)
+  #   |> Enum.find(fn type -> match?({:default, _, _}, type) end)
+  #   |> case do
+  #     nil ->
+  #       attrs
+
+  #     {:default, _location, [type]} ->
+  #       attrs ++ [default_type: type]
+  #   end
+  # end
 
   @doc false
   defmacro pop() do

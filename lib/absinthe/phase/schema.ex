@@ -160,12 +160,11 @@ defmodule Absinthe.Phase.Schema do
   end
 
   defp set_schema_node(%Blueprint.Document.Field{} = node, parent, schema, adapter) do
-    %{node | schema_node: find_schema_field(parent.schema_node, node.name, schema, adapter)}
+    %{node | schema_node: find_schema_field(parent.schema_node, node.name, node, schema, adapter)}
   end
 
-  defp set_schema_node(%Blueprint.Input.Argument{name: name} = node, parent, _schema, adapter) do
-    schema_node = find_schema_argument(parent.schema_node, name, adapter)
-    %{node | schema_node: schema_node}
+  defp set_schema_node(%Blueprint.Input.Argument{name: name} = node, parent, schema, adapter) do
+    %{node | schema_node: find_schema_argument(parent.schema_node, name, node, schema, adapter)}
   end
 
   defp set_schema_node(%Blueprint.Document.Fragment.Spread{} = node, _, _, _) do
@@ -174,11 +173,14 @@ defmodule Absinthe.Phase.Schema do
 
   defp set_schema_node(%Blueprint.Input.Field{} = node, parent, schema, adapter) do
     case node.name do
+      "__inputname" ->
+        %{node | schema_node: parent.schema_node.fields.__inputname}
+
       "__" <> _ ->
         %{node | schema_node: nil}
 
       name ->
-        %{node | schema_node: find_schema_field(parent.schema_node, name, schema, adapter)}
+        %{node | schema_node: find_schema_field(parent.schema_node, name, node, schema, adapter)}
     end
   end
 
@@ -200,6 +202,16 @@ defmodule Absinthe.Phase.Schema do
       %Absinthe.Type.Field{type: type} ->
         %{node | schema_node: type |> Type.expand(schema)}
 
+      %Absinthe.Type.InputUnion{} = input_union ->
+        case node do
+          %{normalized: %{fields: fields}} ->
+            concrete_type = extract_typename(fields, input_union)
+            %{node | schema_node: concrete_type |> Type.expand(schema)}
+
+          _ ->
+            node
+        end
+
       type ->
         %{node | schema_node: type |> Type.expand(schema)}
     end
@@ -217,41 +229,57 @@ defmodule Absinthe.Phase.Schema do
   @spec find_schema_argument(
           nil | Type.Field.t() | Type.Argument.t(),
           String.t(),
+          Absinthe.Blueprint.Input.Argument.t(),
+          Absinthe.Schema.t(),
           Absinthe.Adapter.t()
         ) :: nil | Type.Argument.t()
-  defp find_schema_argument(%{args: arguments}, name, adapter) do
+  defp find_schema_argument(%{args: arguments}, name, node, schema, adapter) do
     internal_name = adapter.to_internal_name(name, :argument)
 
-    arguments
-    |> Map.values()
-    |> Enum.find(&match?(%{name: ^internal_name}, &1))
+    result =
+      arguments
+      |> Map.values()
+      |> Enum.find(&match?(%{name: ^internal_name}, &1))
+
+    determine_concrete_type(result, node, schema)
   end
 
   # Given a schema type, lookup a child field definition
-  @spec find_schema_field(nil | Type.t(), String.t(), Absinthe.Schema.t(), Absinthe.Adapter.t()) ::
-          nil | Type.Field.t()
-
-  defp find_schema_field(%{of_type: type}, name, schema, adapter) do
-    find_schema_field(type, name, schema, adapter)
+  @spec find_schema_field(
+          nil | Type.t(),
+          String.t(),
+          Absinthe.Blueprint.Input.Field.t() | Absinthe.Blueprint.Document.Field.t(),
+          Absinthe.Schema.t(),
+          Absinthe.Adapter.t()
+        ) :: nil | Type.Field.t()
+  defp find_schema_field(_, "__" <> introspection_field, _, _, _) do
+    Absinthe.Introspection.Field.meta(introspection_field)
   end
 
-  defp find_schema_field(%{fields: fields}, name, _schema, adapter) do
+  defp find_schema_field(%{of_type: type}, name, node, schema, adapter) do
+    find_schema_field(type, name, node, schema, adapter)
+  end
+
+  defp find_schema_field(%{fields: fields}, name, node, schema, adapter) do
     internal_name = adapter.to_internal_name(name, :field)
 
-    fields
-    |> Map.values()
-    |> Enum.find(&match?(%{name: ^internal_name}, &1))
+    result =
+      fields
+      |> Map.values()
+      |> Enum.find(&match?(%{name: ^internal_name}, &1))
+
+    determine_concrete_type(result, node, schema)
   end
 
-  defp find_schema_field(%Type.Field{type: maybe_wrapped_type}, name, schema, adapter) do
+  defp find_schema_field(%Type.Field{type: maybe_wrapped_type}, name, node, schema, adapter) do
     type =
       Type.unwrap(maybe_wrapped_type)
       |> schema.__absinthe_lookup__
 
-    find_schema_field(type, name, schema, adapter)
+    find_schema_field(type, name, node, schema, adapter)
   end
 
-  defp find_schema_field(_, _, _, _) do
+  defp find_schema_field(_, _, _, _, _) do
     nil
   end
 
@@ -267,6 +295,29 @@ defmodule Absinthe.Phase.Schema do
     defp type_reference_to_type(%unquote(blueprint_type){} = node, schema) do
       inner = type_reference_to_type(node.of_type, schema)
       %unquote(core_type){of_type: inner}
+    end
+  end
+
+  defp determine_concrete_type(result, node, schema) do
+    with %{type: type} <- result,
+         %{input_value: %{normalized: %{fields: fields}}} <- node,
+         %Absinthe.Type.InputUnion{} = input_union <-
+           Absinthe.Schema.cached_lookup_type(schema, Type.unwrap(type)) do
+      concrete_type = extract_typename(fields, input_union)
+      %{result | type: concrete_type}
+    else
+      _ -> result
+    end
+  end
+
+  defp extract_typename(fields, input_union) do
+    with %{input_value: %{normalized: %{value: value}}} <-
+           Enum.find(fields, fn field -> field.name == "__inputname" end) do
+      value
+      |> Macro.underscore()
+      |> String.to_atom()
+    else
+      _ -> input_union.default_type
     end
   end
 end

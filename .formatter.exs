@@ -21,6 +21,8 @@ locals_without_parens = [
   import_sdl: 1,
   import_sdl: 2,
   input_object: 3,
+  input_union: 3,
+  instruction: 1,
   interface: 1,
   interface: 3,
   interfaces: 1,
