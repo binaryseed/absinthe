@@ -59,6 +59,7 @@ defmodule Absinthe.Fixtures.ArgumentsSchema do
 
   input_object :that_one do
     field :that, :string
+    field :extra, :integer
   end
 
   input_object :nested_input do

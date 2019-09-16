@@ -157,7 +157,7 @@ defmodule Absinthe.Execution.Arguments.InputObjectTest do
   end
 
   describe "Input Union" do
-    test "works" do
+    test "__inputname discrimination" do
       assert_data(
         %{"eitherOr" => "THIS foo"},
         run(
@@ -180,6 +180,22 @@ defmodule Absinthe.Execution.Arguments.InputObjectTest do
             eitherOr(
               objectArg: {value: "Ignore me"}
               unionArg: {__inputname: "ThatOne", that: "bar"}
+            )
+          }
+          """,
+          @schema
+        )
+      )
+    end
+
+    test "structural discrimination" do
+      assert_data(
+        %{"eitherOr" => "THAT bar"},
+        run(
+          """
+          query {
+            eitherOr(
+              unionArg: {that: "bar"}
             )
           }
           """,

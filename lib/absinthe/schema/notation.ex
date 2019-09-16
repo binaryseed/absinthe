@@ -939,9 +939,9 @@ defmodule Absinthe.Schema.Notation do
 
   @placement {:types, [under: [:union, :input_union]]}
   @doc """
-  Defines the types possible under a union type
+  Defines the types possible under a union or input_union type
 
-  See `union/3`
+  See `union/3` and `input_union/3`
 
   ## Placement
 

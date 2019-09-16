@@ -45,6 +45,10 @@ defmodule Absinthe.Phase.Schema.Validation.TypeReferencesExist do
     check_types(union, :types, &check_or_error(&2, &1, types))
   end
 
+  def validate_types(%Blueprint.Schema.InputUnionTypeDefinition{} = input_union, types) do
+    check_types(input_union, :types, &check_or_error(&2, &1, types))
+  end
+
   @no_types [
     Blueprint.Schema.DirectiveDefinition,
     Blueprint.Schema.EnumTypeDefinition,

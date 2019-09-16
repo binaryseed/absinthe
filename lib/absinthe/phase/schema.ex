@@ -205,7 +205,7 @@ defmodule Absinthe.Phase.Schema do
       %Absinthe.Type.InputUnion{} = input_union ->
         case node do
           %{normalized: %{fields: fields}} ->
-            concrete_type = extract_typename(fields, input_union)
+            concrete_type = extract_typename(fields, input_union, schema)
             %{node | schema_node: concrete_type |> Type.expand(schema)}
 
           _ ->
@@ -303,21 +303,49 @@ defmodule Absinthe.Phase.Schema do
          %{input_value: %{normalized: %{fields: fields}}} <- node,
          %Absinthe.Type.InputUnion{} = input_union <-
            Absinthe.Schema.lookup_type(schema, Type.unwrap(type)) do
-      concrete_type = extract_typename(fields, input_union)
+      concrete_type = extract_typename(fields, input_union, schema)
       %{result | type: concrete_type}
     else
       _ -> result
     end
   end
 
-  defp extract_typename(fields, input_union) do
+  defp extract_typename(fields, input_union, schema) do
+    IO.inspect({:extract_typename, fields, input_union})
+
     with %{input_value: %{normalized: %{value: value}}} <-
            Enum.find(fields, fn field -> field.name == "__inputname" end) do
       value
       |> Macro.underscore()
       |> String.to_atom()
     else
-      _ -> input_union.default_type
+      _ ->
+        # structural discrimination
+        possible_concrete_types =
+          Enum.map(input_union.types, &Absinthe.Schema.lookup_type(schema, &1))
+          |> Enum.map(fn input_object ->
+            all_field_names =
+              input_object.fields
+              |> Map.drop([:__inputname])
+              |> Enum.map(fn {_id, %{name: name}} -> name end)
+
+            {input_object.identifier, all_field_names}
+          end)
+          |> IO.inspect(label: "possible_concrete_types")
+
+        fields_present = fields |> Enum.map(& &1.name) |> IO.inspect(label: "fields_present")
+
+        matching_types =
+          possible_concrete_types
+          |> Enum.filter(fn {identifier, type_fields} ->
+            Enum.all?(fields_present, &(&1 in type_fields))
+          end)
+          |> IO.inspect(label: "matching_types")
+
+        case matching_types do
+          [{identifier, _type_fields}] -> identifier
+          _ -> nil
+        end
     end
   end
 end
