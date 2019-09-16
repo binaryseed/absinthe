@@ -50,4 +50,44 @@ defmodule Absinthe.Type.InputUnion do
   def member?(_, _) do
     false
   end
+
+  def determine_concrete_type(included_fields, input_union, schema) do
+    with %{input_value: %{normalized: %{value: inputname}}} <-
+           Enum.find(included_fields, fn field -> field.name == "__inputname" end) do
+      Absinthe.Schema.lookup_type(schema, inputname)
+    else
+      nil ->
+        # structural discrimination
+
+        input_union.types
+        |> lookup_concrete_types(schema)
+        |> determine_matching_types(included_fields)
+        |> case do
+          [{identifier, _type_fields}] -> identifier
+          _ -> nil
+        end
+    end
+  end
+
+  defp lookup_concrete_types(input_union_types, schema) do
+    input_union_types
+    |> Enum.map(&Absinthe.Schema.lookup_type(schema, &1))
+    |> Enum.map(fn concrete_type ->
+      field_names =
+        concrete_type.fields
+        |> Map.drop([:__inputname])
+        |> Enum.map(fn {_identifier, %{name: name}} -> name end)
+        |> MapSet.new()
+
+      {concrete_type.identifier, field_names}
+    end)
+  end
+
+  defp determine_matching_types(possible_types, included_fields) do
+    included_field_names = included_fields |> Enum.map(& &1.name) |> MapSet.new()
+
+    Enum.filter(possible_types, fn {_identifier, input_field_names} ->
+      MapSet.subset?(included_field_names, input_field_names)
+    end)
+  end
 end

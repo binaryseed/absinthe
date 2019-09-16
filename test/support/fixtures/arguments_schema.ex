@@ -54,10 +54,12 @@ defmodule Absinthe.Fixtures.ArgumentsSchema do
   end
 
   input_object :this_one do
+    field :shared, :string
     field :this, :string
   end
 
   input_object :that_one do
+    field :shared, :string
     field :that, :string
     field :extra, :integer
   end
@@ -182,7 +184,12 @@ defmodule Absinthe.Fixtures.ArgumentsSchema do
           {:ok, "NESTED THAT #{thing}"}
 
         %{list_union: lists}, _ ->
-          {:ok, lists |> Enum.flat_map(&Map.values/1) |> Enum.join("&")}
+          # TODO: Should __inputname be passed to resolver?
+          {:ok,
+           lists
+           |> Enum.map(&Map.drop(&1, [:__inputname]))
+           |> Enum.flat_map(&Map.values/1)
+           |> Enum.join("&")}
 
         _, _ ->
           {:error, "NOTHIN"}

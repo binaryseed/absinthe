@@ -190,6 +190,34 @@ defmodule Absinthe.Execution.Arguments.InputObjectTest do
 
     test "structural discrimination" do
       assert_data(
+        %{"eitherOr" => "THIS foo"},
+        run(
+          """
+          query {
+            eitherOr(
+              unionArg: {this: "foo", shared: "field"}
+            )
+          }
+          """,
+          @schema
+        )
+      )
+
+      assert_data(
+        %{"eitherOr" => "THIS foo"},
+        run(
+          """
+          query {
+            eitherOr(
+              unionArg: {this: "foo"}
+            )
+          }
+          """,
+          @schema
+        )
+      )
+
+      assert_data(
         %{"eitherOr" => "THAT bar"},
         run(
           """
@@ -227,12 +255,26 @@ defmodule Absinthe.Execution.Arguments.InputObjectTest do
 
     test "list of input unions" do
       assert_data(
-        %{"eitherOr" => "ThisOne&THIS&ThatOne&THAT"},
+        %{"eitherOr" => "THIS&THAT"},
         run(
           """
           query {
             eitherOr(
               listUnion: [{__inputname: "ThisOne", this: "THIS"}, {__inputname: "ThatOne", that: "THAT"}]
+            )
+          }
+          """,
+          @schema
+        )
+      )
+
+      assert_data(
+        %{"eitherOr" => "THIS&THAT"},
+        run(
+          """
+          query {
+            eitherOr(
+              listUnion: [{this: "THIS"}, {that: "THAT"}]
             )
           }
           """,

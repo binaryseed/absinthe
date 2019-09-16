@@ -46,7 +46,7 @@ defmodule Absinthe.Type.InputUnionTest do
       assert %Absinthe.Type.InputUnion{
                name: "SearchQuery",
                description: "A search query",
-               types: [:person, :business]
+               types: [:business, :person]
              } = obj
     end
   end

@@ -32,7 +32,7 @@ defmodule Absinthe.Blueprint.Schema.InputUnionTypeDefinition do
           errors: [Absinthe.Phase.Error.t()]
         }
 
-  def build(type_def, schema) do
+  def build(type_def, _schema) do
     %Type.InputUnion{
       name: type_def.name,
       description: type_def.description,
