@@ -236,12 +236,10 @@ defmodule Absinthe.Phase.Schema do
   defp find_schema_argument(%{args: arguments}, name, node, schema, adapter) do
     internal_name = adapter.to_internal_name(name, :argument)
 
-    result =
-      arguments
-      |> Map.values()
-      |> Enum.find(&match?(%{name: ^internal_name}, &1))
-
-    determine_concrete_type(result, node, schema)
+    arguments
+    |> Map.values()
+    |> Enum.find(&match?(%{name: ^internal_name}, &1))
+    |> determine_concrete_type(node, schema)
   end
 
   # Given a schema type, lookup a child field definition
@@ -263,12 +261,10 @@ defmodule Absinthe.Phase.Schema do
   defp find_schema_field(%{fields: fields}, name, node, schema, adapter) do
     internal_name = adapter.to_internal_name(name, :field)
 
-    result =
-      fields
-      |> Map.values()
-      |> Enum.find(&match?(%{name: ^internal_name}, &1))
-
-    determine_concrete_type(result, node, schema)
+    fields
+    |> Map.values()
+    |> Enum.find(&match?(%{name: ^internal_name}, &1))
+    |> determine_concrete_type(node, schema)
   end
 
   defp find_schema_field(%Type.Field{type: maybe_wrapped_type}, name, node, schema, adapter) do
