@@ -58,17 +58,28 @@ defmodule Absinthe.Schema.TypeSystemDirectiveTest do
 
     scalar SweetScalar @feature(name: ":scalar")
 
-    type Query {
+    type DirectiveEcho {
+      name: String
+      args: [DirectiveArgEcho]
+    }
+
+    type Query @feature(name: "Query!") {
       post: Post @feature(name: ":field_definition")
       sweet: SweetScalar
       pet: Dog
       which: Category
       search(filter: SearchFilter @feature(name: ":argument_definition")): SearchResult
+      directiveEcho: [DirectiveEcho]
     }
 
     type Dog implements Animal {
       legCount: Int!
       name: String!
+    }
+
+    type DirectiveArgEcho {
+      name: String
+      value: String
     }
 
     enum Category @feature(name: ":enum") {
@@ -86,13 +97,38 @@ defmodule Absinthe.Schema.TypeSystemDirectiveTest do
       {:resolve_type, &__MODULE__.resolve_type/1}
     end
 
+    def hydrate(%{identifier: :directive_echo}, [%{identifier: :query}]) do
+      {:resolve, &__MODULE__.directive_echo/3}
+    end
+
     def hydrate(_node, _ancestors), do: []
 
     def resolve_type(_), do: false
+
+    def directive_echo(_source, _args, res) do
+      directive_echo =
+        res.definition.parent_type.directives
+        |> Enum.map(fn directive ->
+          args = Enum.map(directive.args, fn {name, value} -> %{name: name, value: value} end)
+          %{name: directive.name, args: args}
+        end)
+
+      {:ok, directive_echo}
+    end
   end
 
   test "Render SDL with Type System Directives applied" do
     assert Absinthe.Schema.to_sdl(TypeSystemDirectivesSchema) ==
              TypeSystemDirectivesSchema.sdl()
+  end
+
+  test "Type System Directives available inside resolution" do
+    {:ok, %{data: data}} =
+      Absinthe.run("{ directiveEcho { name args { name value } } }", TypeSystemDirectivesSchema)
+
+    args = get_in(data, ["directiveEcho", Access.at(0), "args", Access.at(0)])
+
+    assert args["name"] == "name"
+    assert args["value"] == "Query!"
   end
 end

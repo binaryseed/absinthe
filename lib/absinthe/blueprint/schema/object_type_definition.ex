@@ -42,16 +42,26 @@ defmodule Absinthe.Blueprint.Schema.ObjectTypeDefinition do
   def functions(), do: [:is_type_of]
 
   def build(type_def, schema) do
-    %Type.Object{
+     %Type.Object{
       identifier: type_def.identifier,
       name: type_def.name,
       description: type_def.description,
       fields: build_fields(type_def, schema),
       interfaces: type_def.interfaces,
+      directives: build_directives(type_def, schema),
       definition: type_def.module,
       is_type_of: type_def.is_type_of,
       __private__: type_def.__private__
     }
+  end
+
+  def build_directives(type_def, schema) do
+    for directive_def <- type_def.directives do
+      %{
+        directive_def.schema_node
+        | args: Blueprint.Input.Argument.value_map(directive_def.arguments)
+      }
+    end
   end
 
   def build_fields(type_def, schema) do

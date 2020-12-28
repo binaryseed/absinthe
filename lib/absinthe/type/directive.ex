@@ -2,8 +2,6 @@ defmodule Absinthe.Type.Directive do
   @moduledoc """
   Used by the GraphQL runtime as a way of modifying execution
   behavior.
-
-  Type system creators will usually not create these directly.
   """
 
   alias Absinthe.Type
@@ -15,7 +13,9 @@ defmodule Absinthe.Type.Directive do
 
   * `:name` - The name of the directivee. Should be a lowercase `binary`. Set automatically.
   * `:description` - A nice description for introspection.
-  * `:args` - A map of `Absinthe.Type.Argument` structs. See `Absinthe.Schema.Notation.arg/2`.
+  * `:args`
+    - For Executable Directives: A map of `Absinthe.Type.Argument` structs. See `Absinthe.Schema.Notation.arg/2`.
+    - For Type System Directives: The argument values supplied in the schema definition
   * `:locations` - A list of places the directives can be used.
   * `:repeatable` - A directive may be defined as repeatable by including the “repeatable” keyword
 
